@@ -1,0 +1,279 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <title>Diabetes Prediction</title>
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet">
+  <style>
+    * { box-sizing: border-box; }
+    html,body { height:100%; margin:0; padding:0; }
+    body {
+      font-family: "Poppins", sans-serif;
+      background: radial-gradient(circle at top left, #3a3f2b, #0b1220 55%);
+      color:#e9efe6;
+      display:flex; align-items:center; justify-content:center;
+      padding:12px; overflow:hidden;
+    }
+
+    .card {
+      width:100%; max-width:640px;
+      background: linear-gradient(180deg,#101512,#081017);
+      border-radius:14px; padding:18px; position:relative;
+      box-shadow:0 18px 40px rgba(0,0,0,0.6);
+    }
+
+    /* Refresh button top-right */
+    .refresh-btn {
+      position:absolute; right:12px; top:12px;
+      background: linear-gradient(135deg,#b8a86b,#8f7f44);
+      color:#071014; border:none; padding:8px 12px; border-radius:8px;
+      font-weight:600; cursor:pointer;
+      box-shadow:0 8px 20px rgba(0,0,0,0.35);
+    }
+    .refresh-btn:active { transform:translateY(1px); }
+    .refresh-btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 10px 22px rgba(0,0,0,0.45);
+      background: linear-gradient(135deg,#d5c27a,#a08b48);
+    }
+
+    h1 { text-align:center; margin:6px 0 8px; font-size:22px; color:#f6f8ef; }
+    .subtitle { text-align:center; color:#cfd6bf; font-size:13px; margin-bottom:12px; }
+
+    form { width:100%; }
+    .form-row { display:flex; gap:12px; margin-bottom:10px; }
+    .form-group { flex:1; position:relative; }
+    label { display:block; color:#d7ddc0; font-size:13px; margin-bottom:4px; font-weight:500; }
+    input[type=number], input[type=text] {
+      width:100%; padding:9px 10px; border-radius:8px; border:1px solid #2f3a2a;
+      background:#0d1311; color:#e9efe6; font-size:13px;
+      transition: box-shadow 120ms ease, border-color 120ms ease, transform 120ms ease;
+    }
+    input::placeholder { color:#9aa089; }
+    input:focus { outline:none; border-color:#c9b67a; box-shadow:0 0 0 2px rgba(201,182,122,0.12); transform: translateY(-1px); }
+
+    /* Remove native spinner arrows (Chrome, Safari) and Firefox */
+    input[type=number]::-webkit-outer-spin-button,
+    input[type=number]::-webkit-inner-spin-button {
+        -webkit-appearance: none;
+        margin: 0;
+    }
+    input[type=number] {
+        -moz-appearance: textfield;
+    }
+
+    /* invalid input highlight (client-side) */
+    .invalid {
+      border-color: #ff6b6b !important;
+      box-shadow: 0 6px 18px rgba(255,107,107,0.12) !important;
+      animation: pulse 800ms ease;
+    }
+    @keyframes pulse {
+      0% { transform: translateY(0); }
+      50% { transform: translateY(-2px); }
+      100% { transform: translateY(0); }
+    }
+
+    .predict-btn {
+      width:100%; padding:11px; margin-top:6px; font-size:15px;
+      background: linear-gradient(135deg,#c9b67a,#a58f4a);
+      border:none; border-radius:10px; color:#071014; cursor:pointer; font-weight:700;
+    }
+
+    .predict-btn:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 12px 25px rgba(0,0,0,0.48);
+      background: linear-gradient(135deg,#e0cc84,#b79a4f);
+    }
+
+    .result {
+      margin-top:14px; padding:12px; border-radius:10px;
+      background: linear-gradient(180deg, rgba(255,255,255,0.02), rgba(0,0,0,0.06));
+      border:1px solid rgba(168,152,80,0.14); display:flex; justify-content:space-between; align-items:center;
+    }
+    .result .label { color:#d7ddc0; font-size:13px; }
+    .result .value { color:#f2d88b; font-weight:800; font-size:16px; }
+
+    /* server error box — nicer red styling */
+    .error-box {
+      margin-bottom:12px;
+      padding:12px;
+      border-radius:10px;
+      background: linear-gradient(180deg, rgba(255,100,100,0.06), rgba(30,0,0,0.08));
+      border: 1px solid rgba(255,90,90,0.22);
+      display:flex;
+      gap:12px;
+      align-items:center;
+    }
+    .error-box .icon {
+      width:38px; height:38px; border-radius:8px;
+      background: linear-gradient(135deg, rgba(255,120,120,0.15), rgba(255,70,70,0.12));
+      display:flex; align-items:center; justify-content:center;
+      color:#ffefef; font-weight:700; font-size:18px;
+      box-shadow: 0 6px 18px rgba(255,80,80,0.06);
+    }
+    .error-box .text {
+      color:#ffd6d6; font-size:14px; line-height:1.2;
+    }
+    .error-box .text strong { color:#fff; }
+
+    /* client-side inline hint (lighter) */
+    .hint {
+      margin-top:8px; color:#ffcccb; font-size:13px;
+    }
+
+    @media (max-width:580px) {
+      .form-row { flex-direction:column; gap:8px; }
+      .card { padding:16px; max-width:520px; }
+      .refresh-btn { top:8px; right:8px; padding:7px 10px; }
+    }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <button id="refreshBtn" class="refresh-btn" title="Clear inputs and result">Refresh</button>
+
+    <h1>Diabetes Prediction</h1>
+    <div class="subtitle">Enter values and press Predict for person is Diabetic or Not</div>
+
+    {% if error %}
+    <div id="serverError" class="error-box" role="alert" aria-live="assertive">
+      <div class="icon">!</div>
+      <div class="text"><strong>Error:</strong> {{ error }}</div>
+    </div>
+    {% else %}
+    <div id="serverError" style="display:none;"></div>
+    {% endif %}
+
+    <form id="predForm" action="{{ url_for('predict_datapoint') }}" method="post" autocomplete="off" novalidate>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label for="Pregnancies">Pregnancies</label>
+          <input id="Pregnancies" name="Pregnancies" type="number" placeholder="e.g., 2">
+        </div>
+        <div class="form-group">
+          <label for="Glucose">Glucose</label>
+          <input id="Glucose" name="Glucose" type="number" placeholder="e.g., 120">
+        </div>
+      </div>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label for="BloodPressure">Blood Pressure</label>
+          <input id="BloodPressure" name="BloodPressure" type="number" placeholder="e.g., 70">
+        </div>
+         <div class="form-group">
+          <label for="Insulin">Insulin</label>
+          <input id="Insulin" name="Insulin" type="number" placeholder="e.g., 80">
+        </div>
+      </div>
+
+      <div class="form-row">
+       
+        <div class="form-group">
+          <label for="BMI">BMI</label>
+          <input id="BMI" name="BMI" type="number" placeholder="e.g., 28.5">
+        </div>
+        <div class="form-group">
+          <label for="DiabetesPedigreeFunction">Diabetes Pedigree Function</label>
+          <input id="DiabetesPedigreeFunction" name="DiabetesPedigreeFunction" type="number" placeholder="e.g., 0.45">
+        </div>
+      </div>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label for="Age">Age</label>
+          <input id="Age" name="Age" type="number" placeholder="e.g., 32">
+        </div>
+      </div>
+
+      <button type="submit" class="predict-btn">Predict</button>
+    </form>
+
+    {% if result %}
+    <div id="resultBox" class="result" role="status" aria-live="polite">
+      <div class="label">Prediction</div>
+      <div id="resultValue" class="value">{{ result }}</div>
+    </div>
+    {% else %}
+    <div id="resultBox" style="display:none;"></div>
+    {% endif %}
+  </div>
+
+<script>
+(function () {
+  const form = document.getElementById('predForm');
+  const refreshBtn = document.getElementById('refreshBtn');
+  const resultBox = document.getElementById('resultBox');
+
+  const fields = [
+    'Pregnancies','Glucose','BloodPressure',
+    'Insulin','BMI','DiabetesPedigreeFunction','Age'
+  ];
+
+  // Clear form on page load (browser refresh)
+ if (refreshBtn) {
+  refreshBtn.addEventListener('click', function (e) {
+    e.preventDefault();
+    if (form) form.reset();
+    if (resultBox) resultBox.style.display = 'none';
+  });
+}
+
+
+  // Disable arrow keys & mouse wheel on number inputs
+  fields.forEach(f => {
+    const el = document.getElementById(f);
+    if (!el) return;
+
+    el.addEventListener('keydown', function (e) {
+      if (['ArrowUp','ArrowDown','PageUp','PageDown'].includes(e.key)) {
+        e.preventDefault();
+      }
+    });
+
+    el.addEventListener('wheel', function (e) {
+      if (document.activeElement === el) e.preventDefault();
+    }, { passive: false });
+  });
+  
+
+
+
+  // Refresh button → clear everything
+  if (refreshBtn) {
+    refreshBtn.addEventListener('click', function (e) {
+      e.preventDefault();
+      if (form) form.reset();
+      if (resultBox) resultBox.style.display = 'none';
+    });
+  }
+
+  // Simple required-field validation
+  if (form) {
+    form.addEventListener('submit', function (e) {
+      let valid = true;
+
+      fields.forEach(f => {
+        const el = document.getElementById(f);
+        if (!el) return;
+
+        el.classList.remove('invalid');
+        if (el.value.trim() === '') {
+          el.classList.add('invalid');
+          valid = false;
+        }
+      });
+
+      if (!valid) {
+        e.preventDefault();
+      }
+    });
+  }
+})();
+</script>
+
+</body>
+</html>
