@@ -3,7 +3,7 @@ import dill
 import pickle
 import sys,os
 from sklearn.model_selection import GridSearchCV
-from sklearn.metrics import accuracy_score
+from sklearn.metrics import accuracy_score, precision_score, recall_score, f1_score
 from src.exception import CustomException
 from src.logger import logging
 
@@ -29,7 +29,12 @@ def load_object(file_path):
         raise CustomException(e,sys) #type:ignore
     
 def evaluate_metrics(y_true, y_pred):
-    return accuracy_score(y_true, y_pred)
+    accuracy  = accuracy_score(y_true, y_pred)
+    precision = precision_score(y_true, y_pred)
+    recall    = recall_score(y_true, y_pred)
+    f1        = f1_score(y_true, y_pred)
+
+    return accuracy, precision, recall, f1
 
 
 def evaluate_model(X_train, y_train, X_test, y_test, models, param):
@@ -56,7 +61,7 @@ def evaluate_model(X_train, y_train, X_test, y_test, models, param):
 
             y_test_pred = model.predict(X_test)
 
-            score = evaluate_metrics(y_test, y_test_pred)
+            score,_,__,___= evaluate_metrics(y_test, y_test_pred)
             report[list(models.keys())[i]] = {
                 "score": score,
                 "model": model

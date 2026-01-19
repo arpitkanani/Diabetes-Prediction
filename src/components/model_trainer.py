@@ -1,4 +1,6 @@
 import warnings
+
+from sklearn.metrics import confusion_matrix, roc_auc_score
 warnings.filterwarnings('ignore')
 
 import numpy as np
@@ -6,7 +8,7 @@ import os,sys
 
 from src.exception import CustomException
 from src.logger import logging
-from src.utils import save_object,evaluate_model
+from src.utils import save_object,evaluate_model,evaluate_metrics
 
 from urllib.parse import urlparse
 from sklearn.linear_model import LogisticRegression
@@ -18,6 +20,13 @@ from catboost import CatBoostClassifier
 from sklearn.svm import SVC
 from sklearn.naive_bayes import GaussianNB
 from dataclasses import dataclass
+import dagshub
+dagshub.init(repo_owner='arpitkanani', repo_name='Diabetes-Prediction', mlflow=True)#type: ignore
+
+import mlflow
+with mlflow.start_run():
+  mlflow.log_param('parameter name', 'value')
+  mlflow.log_metric('metric name', 1)
 
 @dataclass
 class ModelTrainerConfig:
@@ -135,6 +144,43 @@ class ModelTrainer:
 
             print("this is the best model")
             print(best_model_name)
+
+            models_names=list(params.keys())
+            
+            actual_model=""
+
+            for model in models_names:
+                if best_model_name == model:
+                    actual_model=actual_model + model
+            
+            
+            best_params=params[actual_model]
+
+            mlflow.set_registry_uri("https://dagshub.com/arpitkanani/Diabetes-Prediction.mlflow")
+            tracking_url_type_store= urlparse(mlflow.get_tracking_uri()).scheme
+
+            #ml flow pipe line
+            with mlflow.start_run():
+                y_pred = best_model.predict(X_test)
+                y_proba = best_model.predict_proba(X_test)[:, 1]
+
+                (score, precision, recall, f1) = evaluate_metrics(y_test, y_pred)
+                roc_auc = roc_auc_score(y_test, y_proba)
+
+                mlflow.log_metric("accuracy", float(score))
+                mlflow.log_metric("precision", float(precision))
+                mlflow.log_metric("recall", float(recall))
+                mlflow.log_metric("f1_score", float(f1))
+                mlflow.log_metric("roc_auc", float(roc_auc))
+
+                if tracking_url_type_store != 'file':
+                    mlflow.sklearn.log_model(best_model, artifact_path="model") # type: ignore
+
+                else:
+                    mlflow.sklearn.log_model(best_model,'model') # type: ignore
+
+                
+            
 
            
             if best_model_score<0.6:
