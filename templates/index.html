@@ -1,1 +1,136 @@
-<h2> Welcome to root page!!</h2>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Diabetes Prediction</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <style>
+        body {
+            font-family: "Poppins", Arial, sans-serif;
+            background: linear-gradient(135deg, #f8f9fa, #eef2f7);
+            margin: 0;
+            padding: 0;
+            color: #333;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 60px auto;
+            background: #ffffff;
+            padding: 40px;
+            border-radius: 12px;
+            box-shadow: 0 15px 35px rgba(0,0,0,0.1);
+        }
+
+        h1 {
+            text-align: center;
+            color: #2c3e50;
+            margin-bottom: 10px;
+        }
+
+        h2 {
+            color: #34495e;
+            margin-top: 30px;
+        }
+
+        p {
+            line-height: 1.7;
+            font-size: 16px;
+        }
+
+        ul {
+            margin-top: 15px;
+            padding-left: 20px;
+        }
+
+        li {
+            margin-bottom: 10px;
+            font-size: 15px;
+        }
+
+        .btn {
+            display: block;
+            width: fit-content;
+            margin: 40px auto 0;
+            padding: 14px 32px;
+            background: #2563eb;
+            color: #fff;
+            text-decoration: none;
+            font-size: 16px;
+            border-radius: 8px;
+            transition: background 0.3s ease;
+        }
+
+        .btn:hover {
+            background: #1e40af;
+        }
+
+        .footer {
+            text-align: center;
+            margin-top: 30px;
+            font-size: 14px;
+            color: #777;
+        }
+    </style>
+</head>
+
+<body>
+
+<div class="container">
+    <h1>🩺 Diabetes Prediction</h1>
+
+    <p>
+        This project uses <strong>machine learning classification</strong> techniques to predict
+        whether a person is <strong>Diabetic or Non-Diabetic</strong> based on key medical and
+        physiological attributes.  
+        The model is trained on real-world healthcare data to assist in early risk assessment.
+    </p>
+
+    <h2>📊 Dataset Overview</h2>
+    <p>
+        The dataset contains diagnostic measurements related to diabetes.
+        Each record represents health information of a patient.
+    </p>
+
+    <h2>📌 Features Used</h2>
+    <ul>
+        <li>
+            <strong>Pregnancies</strong> – Number of times a woman has been pregnant.
+            <em>(Applicable only for women,if you are man then enter 0)</em>
+        </li>
+        <li>
+            <strong>Glucose</strong> – Plasma glucose concentration after a glucose tolerance test.
+        </li>
+        <li>
+            <strong>Blood Pressure</strong> – Diastolic blood pressure (mm Hg).
+        </li>
+        <li>
+            <strong>Insulin</strong> – 2-hour serum insulin level (mu U/ml).
+        </li>
+        <li>
+            <strong>BMI</strong> – Body Mass Index, calculated as weight (kg) / height² (m²).
+        </li>
+        <li>
+            <strong>Diabetes Pedigree Function</strong> – Genetic likelihood of diabetes based on family history.
+        </li>
+        <li>
+            <strong>Age</strong> – Age of the person (years).
+        </li>
+    </ul>
+
+    <h2>🎯 Objective</h2>
+    <p>
+        To develop a reliable classification model that predicts diabetes risk using
+        clinical attributes, enabling early detection and awareness.
+    </p>
+
+    <a href="/predictdata" class="btn">🚀 Predict Diabetes Status</a>
+
+    <div class="footer">
+        © 2026 | Diabetes Prediction | Machine Learning Project
+    </div>
+</div>
+
+</body>
+</html>
